@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Re-enable when Server Actions are replaced with client-side Sheets API (Phase 4/5)
-  // output: 'export',
+  output: 'export',
+  // For GitHub Pages project site: set NEXT_PUBLIC_BASE_PATH to /repo-name
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   typescript: {
     ignoreBuildErrors: true,
   },

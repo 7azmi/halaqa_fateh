@@ -28,9 +28,9 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { useIsMobile } from '@/components/ui/use-mobile';
-import { createStudent } from '@/lib/actions';
 import { getSheetsConfig } from '@/lib/sheets-config';
 import { createStudentClient } from '@/lib/client-mutations';
+import { createStudentSupabase } from '@/lib/supabase-client-mutations';
 import { QURAN_SURAHS } from '@/lib/types';
 import type { Teacher, Student } from '@/lib/types';
 
@@ -87,7 +87,7 @@ function StudentForm({
           is_active: true
         });
       } else {
-        await createStudent({
+        await createStudentSupabase({
           name: data.name,
           age: data.age,
           current_surah: data.current_surah,

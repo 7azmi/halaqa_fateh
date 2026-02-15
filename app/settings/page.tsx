@@ -6,7 +6,6 @@ import { useSWRConfig } from 'swr';
 import { Header } from '@/components/header';
 import { BottomNav } from '@/components/bottom-nav';
 import { useTeachers } from '@/lib/hooks/use-data';
-import { createTeacher, getInactiveStudents, reactivateStudent, deleteTeacher } from '@/lib/actions';
 import { getSheetsConfig, setSheetsConfig } from '@/lib/sheets-config';
 import { getSpreadsheetId, setSpreadsheetId, getGoogleClientId, setGoogleClientId } from '@/lib/config';
 import { useGoogleAuth } from '@/components/google-auth-provider';
@@ -15,6 +14,12 @@ import {
   softDeleteTeacherClient,
   reactivateStudentClient,
 } from '@/lib/client-mutations';
+import {
+  createTeacherSupabase,
+  deleteTeacherSupabase,
+  getInactiveStudentsSupabase,
+  reactivateStudentSupabase,
+} from '@/lib/supabase-client-mutations';
 import { getCachedData } from '@/lib/offline-store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -100,7 +105,7 @@ export default function SettingsPage() {
         const students = await getCachedData<Student>('students');
         setInactiveStudents(students.filter((s) => !s.is_active));
       } else {
-        const students = await getInactiveStudents();
+        const students = await getInactiveStudentsSupabase();
         setInactiveStudents(students || []);
       }
     } catch {
@@ -122,7 +127,7 @@ export default function SettingsPage() {
         toast({ title: 'تمت إضافة المعلم بنجاح' });
         mutate('teachers');
       } else {
-        await createTeacher({ name: newTeacherName.trim(), is_active: true });
+        await createTeacherSupabase({ name: newTeacherName.trim(), is_active: true });
         toast({ title: 'تمت إضافة المعلم بنجاح' });
         mutate('teachers');
       }
@@ -143,7 +148,7 @@ export default function SettingsPage() {
         toast({ title: 'تم حذف المعلم' });
         mutate('teachers');
       } else {
-        await deleteTeacher(id);
+        await deleteTeacherSupabase(id);
         toast({ title: 'تم حذف المعلم' });
         mutate('teachers');
       }
@@ -163,7 +168,7 @@ export default function SettingsPage() {
         setInactiveStudents(prev => prev.filter(s => s.id !== studentId));
         mutate('students');
       } else {
-        await reactivateStudent(studentId);
+        await reactivateStudentSupabase(studentId);
         toast({ title: 'تم إعادة تفعيل الطالب' });
         setInactiveStudents(prev => prev.filter(s => s.id !== studentId));
         mutate('students');

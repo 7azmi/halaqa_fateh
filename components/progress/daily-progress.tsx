@@ -5,9 +5,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useSWRConfig } from 'swr';
 import { useStudents, useTeachers, useDailyProgress } from '@/lib/hooks/use-data';
 import { toHijri, formatHijriShort, getDaysInHijriMonth, getHijriMonthName } from '@/lib/hijri';
-import { saveDailyProgress, markAttendanceOnly } from '@/lib/actions';
 import { getSheetsConfig } from '@/lib/sheets-config';
 import { saveDailyProgressClient } from '@/lib/client-mutations';
+import { saveDailyProgressSupabase, markAttendanceOnlySupabase } from '@/lib/supabase-client-mutations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -113,7 +113,7 @@ export function DailyProgressEntry() {
           pages_reviewed: 0,
         }]);
       } else {
-        await markAttendanceOnly({
+        await markAttendanceOnlySupabase({
           student_id: studentId,
           hijri_date: selectedDate,
           hijri_month: hijriMonth,
@@ -160,7 +160,7 @@ export function DailyProgressEntry() {
         if (useSheets) {
           await saveDailyProgressClient(progressEntries);
         } else {
-          await saveDailyProgress(progressEntries);
+          await saveDailyProgressSupabase(progressEntries.map(({ id, ...e }) => e));
         }
       }
       toast({ title: 'تم حفظ التقدم بنجاح' });

@@ -23,9 +23,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { User, BookOpen, GraduationCap, Calendar, Trash2, Edit } from 'lucide-react';
-import { deactivateStudent, updateStudent } from '@/lib/actions';
 import { getSheetsConfig } from '@/lib/sheets-config';
 import { softDeleteStudentClient, updateStudentClient } from '@/lib/client-mutations';
+import { deactivateStudentSupabase, updateStudentSupabase } from '@/lib/supabase-client-mutations';
 import type { Student, Teacher } from '@/lib/types';
 import { QURAN_SURAHS } from '@/lib/types';
 import {
@@ -61,7 +61,7 @@ export function StudentDetailsSheet({ student, onClose, teachers }: StudentDetai
       if (useSheets) {
         await softDeleteStudentClient(student.id);
       } else {
-        await deactivateStudent(student.id);
+        await deactivateStudentSupabase(student.id);
       }
       toast({ title: 'تم إلغاء تفعيل الطالب' });
       mutate('students');
@@ -84,7 +84,7 @@ export function StudentDetailsSheet({ student, onClose, teachers }: StudentDetai
           teacher_id: editedTeacher,
         });
       } else {
-        await updateStudent(student.id, {
+        await updateStudentSupabase(student.id, {
           current_surah: editedSurah,
           teacher_id: editedTeacher,
         });
