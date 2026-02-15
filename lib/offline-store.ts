@@ -31,15 +31,6 @@ function getDB() {
           store.createIndex('by_date', 'hijri_date');
           store.createIndex('by_student', 'student_id');
         }
-        if (!db.objectStoreNames.contains('financial_reports')) {
-          db.createObjectStore('financial_reports', { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains('activity_types')) {
-          db.createObjectStore('activity_types', { keyPath: 'id' });
-        }
-        if (!db.objectStoreNames.contains('budgets')) {
-          db.createObjectStore('budgets', { keyPath: 'id' });
-        }
         // Store for pending sync actions
         if (!db.objectStoreNames.contains('pending_actions')) {
           const store = db.createObjectStore('pending_actions', { keyPath: 'id' });

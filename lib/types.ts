@@ -14,6 +14,7 @@ export interface Student {
   teacher_id?: string;
   teacher?: Teacher;
   is_active: boolean;
+  is_deleted?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -30,57 +31,6 @@ export interface DailyProgress {
   attendance_only?: boolean; // true if student attended but no memorization
   notes?: string;
   created_at: string;
-}
-
-export interface ActivityType {
-  id: string;
-  name: string;
-  is_deleted?: boolean;
-  created_at: string;
-}
-
-export interface BudgetTransaction {
-  id: string;
-  type: 'deposit' | 'expense' | 'adjustment';
-  amount: number;
-  balance_before: number;
-  balance_after: number;
-  description?: string;
-  report_id?: string;
-  created_at: string;
-}
-
-export interface FinancialReport {
-  id: string;
-  activity_type: string;
-  hijri_date: string;
-  participant_count: number;
-  total_cost: number;
-  budget_before: number;
-  budget_after: number;
-  notes?: string;
-  created_at: string;
-}
-
-export interface ExpenseItem {
-  id: string;
-  report_id: string;
-  description: string;
-  amount: number;
-  created_at: string;
-}
-
-export interface ReportPhoto {
-  id: string;
-  report_id: string;
-  photo_url: string;
-  created_at: string;
-}
-
-export interface Budget {
-  id: string;
-  current_balance: number;
-  updated_at: string;
 }
 
 // Quran Surahs for dropdown
@@ -106,10 +56,3 @@ export const ATTENDANCE_OPTIONS = [
   { value: 'excused', label: 'معذور', color: 'bg-blue-100 text-blue-800' },
 ] as const;
 
-export const DEFAULT_ACTIVITY_TYPES = [
-  { name: 'رياضة وصبوح', description: 'نشاط رياضي مع وجبة إفطار' },
-  { name: 'رحلة', description: 'رحلة ترفيهية' },
-  { name: 'مسابقة', description: 'مسابقة قرآنية' },
-  { name: 'حفل تكريم', description: 'حفل تكريم الطلاب المتميزين' },
-  { name: 'أخرى', description: 'نشاط آخر' },
-] as const;

@@ -13,7 +13,7 @@ const notoArabic = Noto_Sans_Arabic({
 
 export const metadata: Metadata = {
   title: 'نظام حلقة القرآن',
-  description: 'نظام إدارة حلقة تحفيظ القرآن الكريم - تسجيل تقدم الطلاب والتقارير المالية',
+  description: 'نظام إدارة حلقة تحفيظ القرآن الكريم - تسجيل تقدم الطلاب',
   generator: 'v0.app',
   manifest: '/manifest.json',
   appleWebApp: {

@@ -2,14 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, BookOpen, Receipt, Settings, Wifi, WifiOff } from 'lucide-react';
+import { Users, BookOpen, Settings, Wifi, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOnlineStatus, useSyncPendingActions } from '@/lib/hooks/use-data';
 
 const navItems = [
   { href: '/', label: 'الطلاب', icon: Users },
   { href: '/progress', label: 'التقدم', icon: BookOpen },
-  { href: '/financial', label: 'المالية', icon: Receipt },
   { href: '/settings', label: 'الإعدادات', icon: Settings },
 ];
 
