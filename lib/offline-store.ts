@@ -65,6 +65,11 @@ export async function getCachedItem<T>(storeName: string, id: string): Promise<T
   return db.get(storeName, id) as Promise<T | undefined>;
 }
 
+export async function deleteCachedItem(storeName: string, id: string): Promise<void> {
+  const db = await getDB();
+  await db.delete(storeName, id);
+}
+
 export async function addPendingAction(action: Omit<PendingAction, 'id' | 'timestamp'>) {
   const db = await getDB();
   const pendingAction: PendingAction = {

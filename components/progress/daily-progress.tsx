@@ -6,6 +6,8 @@ import { useSWRConfig } from 'swr';
 import { useStudents, useTeachers, useDailyProgress } from '@/lib/hooks/use-data';
 import { toHijri, formatHijriShort, getDaysInHijriMonth, getHijriMonthName } from '@/lib/hijri';
 import { saveDailyProgress, markAttendanceOnly } from '@/lib/actions';
+import { getSheetsConfig } from '@/lib/sheets-config';
+import { saveDailyProgressClient } from '@/lib/client-mutations';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -94,18 +96,30 @@ export function DailyProgressEntry() {
     }));
   };
 
+  const useSheets = !!getSheetsConfig();
+
   const handleMarkAttendanceOnly = async (studentId: string) => {
     setMarkingAttendance(studentId);
     try {
       const hijriMonth = `${monthName} ${year}`;
-      await markAttendanceOnly({
-        student_id: studentId,
-        hijri_date: selectedDate,
-        hijri_month: hijriMonth,
-        day_number: day,
-      });
-      
-      // Update local state
+      if (useSheets) {
+        await saveDailyProgressClient([{
+          student_id: studentId,
+          hijri_date: selectedDate,
+          hijri_month: hijriMonth,
+          day_number: day,
+          attendance_only: true,
+          pages_memorized: 0,
+          pages_reviewed: 0,
+        }]);
+      } else {
+        await markAttendanceOnly({
+          student_id: studentId,
+          hijri_date: selectedDate,
+          hijri_month: hijriMonth,
+          day_number: day,
+        });
+      }
       setEntries(prev => ({
         ...prev,
         [studentId]: {
@@ -115,7 +129,6 @@ export function DailyProgressEntry() {
           pages_reviewed: 0,
         }
       }));
-      
       toast({ title: 'تم تسجيل الحضور' });
       mutate(['daily_progress', selectedDate]);
     } catch (error) {
@@ -131,8 +144,9 @@ export function DailyProgressEntry() {
     try {
       const hijriMonth = `${monthName} ${year}`;
       const progressEntries = Object.values(entries)
-        .filter(entry => !entry.attendance_only) // Don't save attendance-only entries here
+        .filter(entry => !entry.attendance_only)
         .map(entry => ({
+          id: existingProgress?.find(p => p.student_id === entry.student_id)?.id,
           student_id: entry.student_id,
           hijri_date: selectedDate,
           hijri_month: hijriMonth,
@@ -143,9 +157,12 @@ export function DailyProgressEntry() {
         }));
 
       if (progressEntries.length > 0) {
-        await saveDailyProgress(progressEntries);
+        if (useSheets) {
+          await saveDailyProgressClient(progressEntries);
+        } else {
+          await saveDailyProgress(progressEntries);
+        }
       }
-      
       toast({ title: 'تم حفظ التقدم بنجاح' });
       mutate(['daily_progress', selectedDate]);
     } catch (error) {

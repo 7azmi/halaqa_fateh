@@ -29,6 +29,8 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { useIsMobile } from '@/components/ui/use-mobile';
 import { createStudent } from '@/lib/actions';
+import { getSheetsConfig } from '@/lib/sheets-config';
+import { createStudentClient } from '@/lib/client-mutations';
 import { QURAN_SURAHS } from '@/lib/types';
 import type { Teacher, Student } from '@/lib/types';
 
@@ -71,16 +73,28 @@ function StudentForm({
   const selectedSurah = watch('current_surah');
   const selectedTeacher = watch('teacher_id');
 
+  const useSheets = !!getSheetsConfig();
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
-      await createStudent({
-        name: data.name,
-        age: data.age,
-        current_surah: data.current_surah,
-        teacher_id: data.teacher_id,
-        is_active: true
-      });
+      if (useSheets) {
+        await createStudentClient({
+          name: data.name,
+          age: data.age,
+          current_surah: data.current_surah,
+          teacher_id: data.teacher_id,
+          is_active: true
+        });
+      } else {
+        await createStudent({
+          name: data.name,
+          age: data.age,
+          current_surah: data.current_surah,
+          teacher_id: data.teacher_id,
+          is_active: true
+        });
+      }
       toast({ title: 'تمت إضافة الطالب بنجاح' });
       mutate('students');
       onSuccess();

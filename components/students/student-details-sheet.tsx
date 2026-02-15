@@ -24,6 +24,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { User, BookOpen, GraduationCap, Calendar, Trash2, Edit } from 'lucide-react';
 import { deactivateStudent, updateStudent } from '@/lib/actions';
+import { getSheetsConfig } from '@/lib/sheets-config';
+import { softDeleteStudentClient, updateStudentClient } from '@/lib/client-mutations';
 import type { Student, Teacher } from '@/lib/types';
 import { QURAN_SURAHS } from '@/lib/types';
 import {
@@ -50,12 +52,17 @@ export function StudentDetailsSheet({ student, onClose, teachers }: StudentDetai
   const [editedSurah, setEditedSurah] = useState(student?.current_surah || '');
   const [editedTeacher, setEditedTeacher] = useState(student?.teacher_id || '');
   const [isSaving, setIsSaving] = useState(false);
+  const useSheets = !!getSheetsConfig();
 
   const handleDeactivate = async () => {
     if (!student) return;
     setIsDeleting(true);
     try {
-      await deactivateStudent(student.id);
+      if (useSheets) {
+        await softDeleteStudentClient(student.id);
+      } else {
+        await deactivateStudent(student.id);
+      }
       toast({ title: 'تم إلغاء تفعيل الطالب' });
       mutate('students');
       onClose();
@@ -71,10 +78,17 @@ export function StudentDetailsSheet({ student, onClose, teachers }: StudentDetai
     if (!student) return;
     setIsSaving(true);
     try {
-      await updateStudent(student.id, {
-        current_surah: editedSurah,
-        teacher_id: editedTeacher,
-      });
+      if (useSheets) {
+        await updateStudentClient(student.id, {
+          current_surah: editedSurah,
+          teacher_id: editedTeacher,
+        });
+      } else {
+        await updateStudent(student.id, {
+          current_surah: editedSurah,
+          teacher_id: editedTeacher,
+        });
+      }
       toast({ title: 'تم تحديث البيانات' });
       mutate('students');
       setIsEditing(false);

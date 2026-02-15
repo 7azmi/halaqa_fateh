@@ -7,6 +7,15 @@ import { Header } from '@/components/header';
 import { BottomNav } from '@/components/bottom-nav';
 import { useTeachers } from '@/lib/hooks/use-data';
 import { createTeacher, getInactiveStudents, reactivateStudent, deleteTeacher } from '@/lib/actions';
+import { getSheetsConfig, setSheetsConfig } from '@/lib/sheets-config';
+import { getSpreadsheetId, setSpreadsheetId, getGoogleClientId, setGoogleClientId } from '@/lib/config';
+import { useGoogleAuth } from '@/components/google-auth-provider';
+import {
+  createTeacherClient,
+  softDeleteTeacherClient,
+  reactivateStudentClient,
+} from '@/lib/client-mutations';
+import { getCachedData } from '@/lib/offline-store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Spinner } from '@/components/ui/spinner';
 import {
-  Sheet,
+  Sheet as SheetUI,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -39,6 +48,9 @@ import {
   User,
   Database,
   Trash2,
+  FileSpreadsheet,
+  LogIn,
+  LogOut,
 } from 'lucide-react';
 import type { Student } from '@/lib/types';
 
@@ -46,6 +58,11 @@ export default function SettingsPage() {
   const { mutate } = useSWRConfig();
   const { toast } = useToast();
   const { data: teachers } = useTeachers();
+  const { accessToken, isSignedIn, signIn, signOut, isReady } = useGoogleAuth();
+  const useSheets = !!getSheetsConfig();
+
+  const [spreadsheetIdInput, setSpreadsheetIdInput] = useState('');
+  const [googleClientIdInput, setGoogleClientIdInput] = useState('');
 
   // Teacher form
   const [showTeacherForm, setShowTeacherForm] = useState(false);
@@ -58,11 +75,34 @@ export default function SettingsPage() {
   const [loadingInactive, setLoadingInactive] = useState(false);
   const [reactivatingId, setReactivatingId] = useState<string | null>(null);
 
+  useEffect(() => {
+    setSpreadsheetIdInput(getSpreadsheetId() ?? '');
+    setGoogleClientIdInput(getGoogleClientId() ?? '');
+  }, []);
+
+  const handleSaveSpreadsheetId = () => {
+    const id = spreadsheetIdInput.trim() || null;
+    setSpreadsheetId(id);
+    if (accessToken) setSheetsConfig(id, accessToken);
+    toast({ title: id ? 'تم حفظ معرف الجدول' : 'تم مسح معرف الجدول' });
+  };
+
+  const handleSaveGoogleClientId = () => {
+    const id = googleClientIdInput.trim() || null;
+    setGoogleClientId(id);
+    toast({ title: id ? 'تم حفظ معرف Google' : 'تم مسح معرف Google' });
+  };
+
   const loadInactiveStudents = async () => {
     setLoadingInactive(true);
     try {
-      const students = await getInactiveStudents();
-      setInactiveStudents(students || []);
+      if (useSheets) {
+        const students = await getCachedData<Student>('students');
+        setInactiveStudents(students.filter((s) => !s.is_active));
+      } else {
+        const students = await getInactiveStudents();
+        setInactiveStudents(students || []);
+      }
     } catch {
       toast({ title: 'حدث خطأ في تحميل الطلاب غير النشطين', variant: 'destructive' });
     } finally {
@@ -75,15 +115,17 @@ export default function SettingsPage() {
       toast({ title: 'يرجى إدخال اسم المعلم', variant: 'destructive' });
       return;
     }
-
     setIsAddingTeacher(true);
     try {
-      await createTeacher({
-        name: newTeacherName,
-        is_active: true
-      });
-      toast({ title: 'تمت إضافة المعلم بنجاح' });
-      mutate('teachers');
+      if (useSheets) {
+        await createTeacherClient({ name: newTeacherName.trim(), is_active: true });
+        toast({ title: 'تمت إضافة المعلم بنجاح' });
+        mutate('teachers');
+      } else {
+        await createTeacher({ name: newTeacherName.trim(), is_active: true });
+        toast({ title: 'تمت إضافة المعلم بنجاح' });
+        mutate('teachers');
+      }
       setNewTeacherName('');
       setShowTeacherForm(false);
     } catch {
@@ -96,9 +138,15 @@ export default function SettingsPage() {
   const handleDeleteTeacher = async (id: string) => {
     setDeletingTeacherId(id);
     try {
-      await deleteTeacher(id);
-      toast({ title: 'تم حذف المعلم' });
-      mutate('teachers');
+      if (useSheets) {
+        await softDeleteTeacherClient(id);
+        toast({ title: 'تم حذف المعلم' });
+        mutate('teachers');
+      } else {
+        await deleteTeacher(id);
+        toast({ title: 'تم حذف المعلم' });
+        mutate('teachers');
+      }
     } catch {
       toast({ title: 'حدث خطأ', variant: 'destructive' });
     } finally {
@@ -109,10 +157,17 @@ export default function SettingsPage() {
   const handleReactivate = async (studentId: string) => {
     setReactivatingId(studentId);
     try {
-      await reactivateStudent(studentId);
-      toast({ title: 'تم إعادة تفعيل الطالب' });
-      setInactiveStudents(prev => prev.filter(s => s.id !== studentId));
-      mutate('students');
+      if (useSheets) {
+        await reactivateStudentClient(studentId);
+        toast({ title: 'تم إعادة تفعيل الطالب' });
+        setInactiveStudents(prev => prev.filter(s => s.id !== studentId));
+        mutate('students');
+      } else {
+        await reactivateStudent(studentId);
+        toast({ title: 'تم إعادة تفعيل الطالب' });
+        setInactiveStudents(prev => prev.filter(s => s.id !== studentId));
+        mutate('students');
+      }
     } catch {
       toast({ title: 'حدث خطأ', variant: 'destructive' });
     } finally {
@@ -125,6 +180,59 @@ export default function SettingsPage() {
       <Header title="الإعدادات" showDate={false} />
       
       <div className="px-4 py-4 space-y-4 pb-24">
+        {/* Google Sheets & Sign-in */}
+        <Card>
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileSpreadsheet className="w-4 h-4" />
+              Google Sheets
+            </CardTitle>
+            <CardDescription>
+              معرف الجدول ومعرف Google للاتصال بالجدول (بدون سيرفر)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-4">
+            <div className="space-y-2">
+              <Label>معرف الجدول (Spreadsheet ID)</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={spreadsheetIdInput}
+                  onChange={(e) => setSpreadsheetIdInput(e.target.value)}
+                  placeholder="من الرابط: docs.google.com/.../d/المعرف/edit"
+                />
+                <Button variant="outline" onClick={handleSaveSpreadsheetId}>حفظ</Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>معرف Google (Client ID)</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={googleClientIdInput}
+                  onChange={(e) => setGoogleClientIdInput(e.target.value)}
+                  placeholder="xxx.apps.googleusercontent.com"
+                />
+                <Button variant="outline" onClick={handleSaveGoogleClientId}>حفظ</Button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {isSignedIn ? (
+                <>
+                  <Badge className="bg-green-100 text-green-800">متصل بـ Google</Badge>
+                  <Button variant="outline" size="sm" onClick={signOut} disabled={!isReady}>
+                    <LogOut className="w-4 h-4 ml-1" />
+                    تسجيل الخروج
+                  </Button>
+                </>
+              ) : (
+                <Button size="sm" onClick={signIn} disabled={!getGoogleClientId() || !isReady}>
+                  {!isReady ? <Spinner className="w-4 h-4 ml-1" /> : <LogIn className="w-4 h-4 ml-1" />}
+                  تسجيل الدخول بـ Google
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Teachers Section */}
         <Card>
           <CardHeader className="p-4 pb-2">
@@ -133,7 +241,7 @@ export default function SettingsPage() {
                 <GraduationCap className="w-4 h-4" />
                 المعلمون
               </CardTitle>
-              <Sheet open={showTeacherForm} onOpenChange={setShowTeacherForm}>
+              <SheetUI open={showTeacherForm} onOpenChange={setShowTeacherForm}>
                 <SheetTrigger asChild>
                   <Button size="sm" variant="outline">
                     <Plus className="w-4 h-4 ml-1" />
@@ -163,7 +271,7 @@ export default function SettingsPage() {
                     </Button>
                   </div>
                 </SheetContent>
-              </Sheet>
+              </SheetUI>
             </div>
           </CardHeader>
           <CardContent className="p-4 pt-0">
