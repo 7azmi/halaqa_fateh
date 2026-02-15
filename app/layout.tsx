@@ -1,7 +1,6 @@
 import React from "react"
 import type { Metadata, Viewport } from 'next'
 import { Noto_Sans_Arabic } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/toaster'
 import { Providers } from './providers'
 import './globals.css'
@@ -15,7 +14,6 @@ const notoArabic = Noto_Sans_Arabic({
 export const metadata: Metadata = {
   title: 'نظام حلقة القرآن',
   description: 'نظام إدارة حلقة تحفيظ القرآن الكريم - تسجيل تقدم الطلاب',
-  generator: 'v0.app',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -43,7 +41,6 @@ export default function RootLayout({
         <Providers>
           {children}
           <Toaster />
-          <Analytics />
         </Providers>
       </body>
     </html>

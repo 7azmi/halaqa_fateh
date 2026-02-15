@@ -1,30 +1,35 @@
-# Quran center app
+# حلقة القرآن — Quran center app
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+نظام إدارة حلقة تحفيظ القرآن الكريم: تسجيل الطلاب والمعلمين وتتبع التقدم اليومي.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/7azmis-projects/v0-quran-center-app-sr)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/vwLGymnGG1p)
+## Features
 
-## Overview
+- **Mobile-first, offline-first** — بيانات محلية ومزامنة مع Google Sheets عند الاتصال
+- **Google Sheets** — قاعدة البيانات (بدون سيرفر). تسجيل الدخول بـ Google وإدخال معرف الجدول من الإعدادات
+- **Soft delete** — المعلمون والطلاب يُحذفون حذفاً ناعماً
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Run locally
 
-## Deployment
+```bash
+npm install
+npm run dev
+```
 
-Your project is live at:
+التطبيق على `http://localhost:3000`.
 
-**[https://vercel.com/7azmis-projects/v0-quran-center-app-sr](https://vercel.com/7azmis-projects/v0-quran-center-app-sr)**
+للاختبار مع Google OAuth عبر نفق آمن: `npm run dev:tunnel` (انظر [docs/ngrok-local-testing.md](docs/ngrok-local-testing.md)).
 
-## Build your app
+## Deploy to GitHub Pages
 
-Continue building your app on:
+الريبو يتضمن workflow لنشر التطبيق كموقع ثابت على GitHub Pages.
 
-**[https://v0.app/chat/vwLGymnGG1p](https://v0.app/chat/vwLGymnGG1p)**
+1. **Settings → Pages** في الريبو، اختر **Source: GitHub Actions**.
+2. ادفع إلى `main` — يتم البناء والنشر تلقائياً.
 
-## How It Works
+الموقع سيكون على: **https://\<username>.github.io/halaqa_fateh/**
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+تفاصيل أكثر: [docs/github-pages.md](docs/github-pages.md).
+
+## Google Sheet template
+
+للاستخدام مع التطبيق، أنشئ جدولاً من القالب في [docs/sheet-template.md](docs/sheet-template.md) وأدخل معرف الجدول في إعدادات التطبيق.
